@@ -6,8 +6,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout this repo
         uses: actions/checkout@main
+
+      - name: Checkout vscode gitlens
+        run: |
+          set -e
+          version=$(curl -L https://api.github.com/repos/gitkraken/vscode-gitlens/releases/latest | jq -r .tag_name)
+          git clone --depth=1 -b $version https://github.com/gitkraken/vscode-gitlens.git
 
       - name: Set up node
         uses: actions/setup-node@main
@@ -17,14 +23,12 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@master
         with:
-          version: 10
+          package_json_file: vscode-gitlens/package.json
 
       - name: Build
         run: |
           set -e
-          version=$(curl -L https://api.github.com/repos/gitkraken/vscode-gitlens/releases/latest | jq -r .tag_name)
-          git clone --depth=1 -b $version https://github.com/gitkraken/vscode-gitlens.git source
-          cd source
+          cd vscode-gitlens
           rm -rf .git
           git apply ../0001-crack.patch
           pnpm install
